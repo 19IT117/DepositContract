@@ -1,3 +1,4 @@
+//1470701 --> 1470483
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
@@ -5,13 +6,13 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract SSTestToken1 is ERC20 {
     bool public supplycontroled = false;
-    
+    //address constant adr1 =;
+    //address constant adr2 =;
+  
     constructor() ERC20("SSTest Token 1", "SSTest1") {
-        //address adr1 =;
-        //address adr2 =;
          _mint(msg.sender,100000000*10 ** decimals());
-        // _mint(adr1,1000);
-        // _mint(adr2,1120*10**decimals());
+         //_mint(adr1,1000);
+         //_mint(adr2,1120*10**decimals());
          supplycontroled = true;
     }
 
