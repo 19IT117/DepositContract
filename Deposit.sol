@@ -6,7 +6,7 @@ import "https://github.com/19IT117/SSTestToken/blob/main/Token.sol";
 contract Deposit{
     
     SSTestToken token1;
-    SSTestToken token2;
+
 
     address public owner;
     uint32 public TVLocked;
@@ -29,9 +29,8 @@ contract Deposit{
     mapping(address => LockDetails[]) public LockMapping;
     mapping(address => LoanDetails[]) public LoanMapping;
     
-    constructor(address _contractaddress1, address _contractaddress2){
+    constructor(address _contractaddress1){
         token1 = SSTestToken(_contractaddress1);
-        token2 = SSTestToken(_contractaddress2);
         owner = msg.sender;
         //t.transferFrom(owner,address(this),1000000);
     }
@@ -41,17 +40,21 @@ contract Deposit{
         require(timeperiod>=10 , "Need to deposit more than 10 Seconds");
         token1.transferFrom(msg.sender,address(this),amount);
         LockMapping[msg.sender].push(LockDetails({amount : amount , lockperiod : block.timestamp + timeperiod}));
-        TVLocked += amount;
-        interestPayable += (amount * 10)/100;
+        unchecked {
+            TVLocked += amount;
+            interestPayable += (amount * 10)/100;
+        }
         require(ownerBalance>interestPayable, "Sorry Deposit can't be done please try later.");
     }
 
     function ClaimTokens(uint256 index) external{
         require(LockMapping[msg.sender][index].lockperiod<=block.timestamp, "you can't withdraw now");
         LockDetails storage s =  LockMapping[msg.sender][index];
-        TVLocked -= s.amount;
-        interestPayable -= (s.amount * 10)/100;
-        ownerBalance -= (s.amount * 10)/100;    
+        unchecked{
+            TVLocked -= s.amount;
+            interestPayable -= (s.amount * 10)/100;
+            ownerBalance -= (s.amount * 10)/100;    
+        }
         token1.transfer(msg.sender,(s.amount*11)/10);
         delete LockMapping[msg.sender][index];
     }
@@ -78,27 +81,30 @@ contract Deposit{
         ownerBalance -= amount;
     }
 
-    function takeLoan(uint32 amount) public{
+    function takeLoan() public payable{
+        uint32 amount = uint32(msg.value);
         require(TVLocked-TVLoaned <= amount, "Insufficent fund in the contract");
         LoanMapping[msg.sender].push(LoanDetails({amount : amount , timestamp : block.timestamp}));
-        token2.transferFrom(msg.sender,address(this),amount);
-        token1.transfer(msg.sender,amount);
-       
-        TVLoaned += amount;
-        TVLocked -= amount ;
+        token1.transfer(msg.sender,msg.value);
+        unchecked{
+            TVLoaned += amount;
+            TVLocked -= amount ;
+        }
     }
 
-    function payLoan(uint index,uint32 amount) public {
+    function payLoan(uint index,uint32 amount) public payable{
         LoanDetails storage s =LoanMapping[msg.sender][index];
         uint32  _amount = s.amount;
         require(amount == (_amount*112)/100,"You need to pay entire loan");
         require(block.timestamp<=s.timestamp+100, "You are late");
         token1.transferFrom(msg.sender,address(this),amount);
-        token2.transfer(msg.sender,_amount);
-        TVLoaned -= _amount;
-        TVLocked += _amount;
-        ownerEarnings += (_amount*11)/100;
-        contractReserve += (_amount*1)/100;
+        payable(msg.sender).transfer(_amount);
+        unchecked{
+            TVLoaned -= _amount;
+            TVLocked += _amount;
+            ownerEarnings += (_amount*11)/100;
+            contractReserve += (_amount*1)/100;
+        }
         delete LoanMapping[msg.sender][index];
     }
 
@@ -107,6 +113,9 @@ contract Deposit{
         token1.transfer(owner,ownerEarnings);
         ownerEarnings=0;
     }
-
+    function balanceEth() public view returns (uint256){
+        return address(this).balance;
+    }
+    
 }
 

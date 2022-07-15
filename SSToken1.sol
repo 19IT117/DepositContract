@@ -6,13 +6,13 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract SSTestToken1 is ERC20 {
     bool public supplycontroled = false;
-    //address constant adr1 =;
-    //address constant adr2 =;
+    address constant adr1 =0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2;
+    address constant adr2 =0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db;
   
     constructor() ERC20("SSTest Token 1", "SSTest1") {
          _mint(msg.sender,100000000*10 ** decimals());
-         //_mint(adr1,1000);
-         //_mint(adr2,1120*10**decimals());
+         _mint(adr1,1000);
+         _mint(adr2,1120*10**decimals());
          supplycontroled = true;
     }
 
